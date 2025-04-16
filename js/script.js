@@ -3,10 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const subNav = document.getElementById("sub-nav");
   const navButtons = document.querySelectorAll(".nav-btn");
   const loader = document.getElementById("loader");
+  
 
   const menuURL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLheGJQjXmy-mQZYGxHzStzGWe1BOF_WkzuXumZvMUzyapcFeXRbUpXypSjnJL7YPXiv7hDF0y1F4JhBSws4lJf09OUnZkJzjZzD1mELsFUP5nb9Yi9VzbMXgzg5XOkbjqSsRfABhwi5yfzr0kF-SIfiGFM1_3Si-kVz5230kaW41vfBbVdFK8zHHhL1Sr1emckWk3l4w-q2b6FpfVx9HfRYAh1qqEJUoOv2aKQQOi6iV9E4NUDjO-0zOb0anvuQNcaoVJNvjmB3VV2EjLMSWJvDV2hfyQ&lib=MYp9KKoqISrgS2frH0npc3D3FZZAEnAtP";
 
   let menuData = {};
+  let currentLang = "it"; 
 
   loader.style.display = "flex";
 
@@ -29,9 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
           menuData[catKey].piatti[sottosezione] = [];
         }
 
+        const translated = {};
+        ["en", "de"].forEach(lang => {
+          if (item[`Nome_${lang}`]) translated[`nome_${lang}`] = item[`Nome_${lang}`];
+          if (item[`Descrizione_${lang}`]) translated[`descrizione_${lang}`] = item[`Descrizione_${lang}`];
+        });
+        
         menuData[catKey].piatti[sottosezione].push({
           nome: item.Nome,
           descrizione: item.Descrizione,
+          ...translated,
           prezzo: item.Prezzo,
           allergeni: item.Allergeni,
           "Prezzo Piccola": item["Prezzo Piccola"],
@@ -41,6 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "Prezzo Bott. 0,375": item["Prezzo Bott. 0,375"],
           "Prezzo Bott. 0,75": item["Prezzo Bott. 0,75"]
         });
+        
       });
     }
 
@@ -52,42 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loader.style.display = "none";
   });
 
-
-  
-    function renderSubNav(cat) {
-      subNav.innerHTML = "";
-    
-      const data = menuData[cat];
-    
-      if (!data) {
-        menuContent.innerHTML = "<p class='text-center'>Nessun contenuto disponibile per questa categoria.</p>";
-        return;
-      }
-    
-      if (!data.sottosezioni || data.sottosezioni.length === 0) {
-        // Non ci sono sottosezioni → stampa tutto direttamente
-        renderMenuFlat(cat);
-        return;
-      }
-    
-      // Ci sono sottosezioni → crea bottoni e mostra la prima
-      data.sottosezioni.forEach(sub => {
-        const btn = document.createElement("button");
-        btn.textContent = sub;
-        btn.dataset.sub = sub;
-        btn.onclick = () => {
-          // Rimuove 'active' da tutti
-          subNav.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-          // Aggiunge 'active' solo al cliccato
-          btn.classList.add("active");
-        
-          renderMenu(cat, sub);
-        };
-                subNav.appendChild(btn);
-      });
-    
-      renderMenu(cat, data.sottosezioni[0]);
-    }
     
 
     function renderMenu(cat, sub) {
@@ -101,6 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const isVino = cat === "vini";
     
             let prezzoExtra = "";
+            const nome = item[`nome_${currentLang}`] || item.nome || "";
+            const descrizione = item[`descrizione_${currentLang}`] || item.descrizione || "";
     
             if (isBirra) {
               prezzoExtra = `
@@ -122,8 +98,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
             return `
               <div class="menu-item">
-                <div class="title">${item.nome}</div>
-                <div class="desc">${item.descrizione || ""}</div>
+              <div class="title">${nome}</div>
+              <div class="desc">${descrizione}</div>
                 ${prezzoExtra || `<div class="price">€${item.prezzo}</div>`}
               <div class="allergeni">Allergeni: ${renderAllergeni(item.allergeni)}</div>
               </div>
@@ -194,7 +170,9 @@ document.addEventListener("DOMContentLoaded", () => {
               const isVino = cat === "vini";
   
               let prezzoExtra = "";
-  
+              const nome = item[`nome_${currentLang}`] || item.nome || "";
+              const descrizione = item[`descrizione_${currentLang}`] || item.descrizione || "";              
+
               if (isBirra) {
                 prezzoExtra = `
                   <div class="prezzi-formati">
@@ -215,8 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
   
               return `
                 <div class="menu-item">
-                  <div class="title">${item.nome}</div>
-                  <div class="desc">${item.descrizione || ""}</div>
+                  <div class="title">${nome}</div>
+                  <div class="desc">${descrizione}</div>
                   ${prezzoExtra || `<div class="price">€${item.prezzo}</div>`}
                   <div class="allergeni">Allergeni: ${renderAllergeni(item.allergeni)}</div>
                   </div>
@@ -256,6 +234,50 @@ document.addEventListener("DOMContentLoaded", () => {
       return `<span class="badge ${className}">${allergene}</span>`;
     }).join(" ");
   }
+
+  // Logica Traduzioni 
+
+  document.querySelector(".lang-switch").addEventListener("click", () => {
+    currentLang = currentLang === "it" ? "en" : currentLang === "en" ? "de" : "it";
+    document.querySelector(".lang-switch").textContent = currentLang.toUpperCase();
+  
+    updateStaticTexts(); // 🔁 traduci testi statici
+
+    // Ricarica la categoria corrente
+    const activeBtn = document.querySelector(".main-nav .active");
+    if (activeBtn) {
+      const cat = activeBtn.dataset.cat;
+      renderSubNav(cat);
+    }
+  });
+
+  function updateStaticTexts() {
+    document.querySelectorAll("[data-menu]").forEach(el => {
+      const key = el.getAttribute("data-menu");
+      if (translations[key] && translations[key][currentLang]) {
+        el.textContent = translations[key][currentLang];
+      }
+    });
+  }
+  
+  const translations = {
+    welcome: {
+      it: "Benvenuti nel nostro ristorante",
+      en: "Welcome to our restaurant",
+      de: "Willkommen in unserem Restaurant"
+    },
+    cat_pizze: { it: "Pizze", en: "Pizza", de: "Pizza" },
+    cat_cucina: { it: "Cucina", en: "Kitchen", de: "Küche" },
+    cat_dolci: { it: "Dessert", en: "Desserts", de: "Desserts" },
+    cat_vini: { it: "Vini", en: "Wines", de: "Weine" },
+    cat_birre: { it: "Birre", en: "Beers", de: "Biere" },
+    loading: {
+      it: "Caricamento del menu...",
+      en: "Loading the menu...",
+      de: "Menü wird geladen..."
+    }
+  };
+  
   
     
 
@@ -268,4 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSubNav(cat);
     });
   });
+
+  updateStaticTexts();
 });

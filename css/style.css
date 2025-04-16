@@ -3,7 +3,7 @@ body {
     font-family: 'Helvetica Neue', sans-serif;
     background: #f9f9f9;
     background-image: url(/img/background.jpg);
-    background-size: cover;
+    background-size:cover;
     color: #333;
   }
   

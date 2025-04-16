@@ -10,17 +10,18 @@
 
   <!-- Header -->
   <header class="header" style="background-color:#8B0000 ;">
-    <h1 style="color: white;">Benvenuti nel nostro ristorante</h1>
+    <img src="img/Logo.jpg" alt="logo agriturismo" style="width: 30%; border-radius: 50%;">
+    <h1 data-menu="welcome" style="color: white;">Benvenuti nel nostro ristorante</h1>
     <div class="lang-switch">IT</div>
   </header>
-
+  
   <!-- Categorie principali -->
   <nav class="main-nav">
-    <button class="nav-btn active" data-cat="pizze">Pizze</button>
-    <button class="nav-btn" data-cat="cucina">Cucina</button>
-    <button class="nav-btn" data-cat="dolci">Dessert</button>
-    <button class="nav-btn" data-cat="vini">Vini</button>
-    <button class="nav-btn" data-cat="birre">Birre</button>
+    <button class="nav-btn active" data-cat="pizze" data-menu="cat_pizze">Pizze</button>
+    <button class="nav-btn" data-cat="cucina" data-menu="cat_cucina">Cucina</button>
+    <button class="nav-btn" data-cat="dolci" data-menu="cat_dolci">Dessert</button>
+    <button class="nav-btn" data-cat="vini" data-menu="cat_vini">Vini</button>
+    <button class="nav-btn" data-cat="birre" data-menu="cat_birre">Birre</button>
   </nav>
 
   <!-- Sottocategorie -->
@@ -31,11 +32,11 @@
     <!-- Generato da JS -->
   </main>
   
-  <div id="loader" class="loader-overlay">
-    <div class="spinner"></div>
-    <div class="loader-text">Caricamento del menu...</div>
-  </div>
-  
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+  <div class="spinner"></div>
+  <div class="loader-text" data-menu="loading">Caricamento del menu...</div>
+</div>
 
   <script src="js/script.js"></script>
 </body>
