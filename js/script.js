@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
       menuContent.innerHTML = `
         <div class="menu-section">
-          <h2>${sub}</h2>
+          <h2>${subSectionTranslations[sub]?.[currentLang] || sub}</h2>
           ${items.map(item => {
             const isBirra = cat === "birre";
             const isVino = cat === "vini";
@@ -101,8 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="title">${nome}</div>
               <div class="desc">${descrizione}</div>
                 ${prezzoExtra || `<div class="price">€${item.prezzo}</div>`}
-              <div class="allergeni">Allergeni: ${renderAllergeni(item.allergeni)}</div>
-              </div>
+            <div class="allergeni">${translations.allergeni_label[currentLang]}: ${renderAllergeni(item.allergeni)}</div>
             `;
           }).join("")}
         </div>
@@ -130,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
     // 🔹 Aggiungi bottone "Tutte"
     const allBtn = document.createElement("button");
-    allBtn.textContent = "Tutte";
+    allBtn.textContent = subSectionTranslations["Tutte"][currentLang];
     allBtn.dataset.sub = "all";
     allBtn.classList.add("active");
     allBtn.onclick = () => renderMenuFlat(cat);
@@ -139,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 🔸 Aggiungi le sottosezioni reali
     data.sottosezioni.forEach(sub => {
       const btn = document.createElement("button");
-      btn.textContent = sub;
+      btn.textContent = subSectionTranslations[sub]?.[currentLang] || sub;
       btn.dataset.sub = sub;
       btn.onclick = () => {
         // Rimuove active da tutti i bottoni e lo mette solo su quello cliccato
@@ -164,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (items?.length) {
         html += `
           <div class="menu-section">
-            ${sub !== "Senza sezione" ? `<h2>${sub}</h2>` : ""}
+            ${sub !== "Senza sezione" ? `<h2>${subSectionTranslations[sub]?.[currentLang] || sub}</h2>` : ""}
             ${items.map(item => {
               const isBirra = cat === "birre";
               const isVino = cat === "vini";
@@ -196,8 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   <div class="title">${nome}</div>
                   <div class="desc">${descrizione}</div>
                   ${prezzoExtra || `<div class="price">€${item.prezzo}</div>`}
-                  <div class="allergeni">Allergeni: ${renderAllergeni(item.allergeni)}</div>
-                  </div>
+                 <div class="allergeni">${translations.allergeni_label[currentLang]}: ${renderAllergeni(item.allergeni)}</div>
               `;
             }).join("")}
           </div>
@@ -209,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderAllergeni(allergeniString) {
-    if (!allergeniString) return "<span>Nessun allergene</span>";
+    if (!allergeniString) return `<span>${subSectionTranslations["nessun_allergene"]?.[currentLang] || "Nessun allergene"}</span>`;
   
     const allergeni = allergeniString.split(",").map(a => a.trim().toLowerCase());
     const badgeMap = {
@@ -231,25 +229,33 @@ document.addEventListener("DOMContentLoaded", () => {
   
     return allergeni.map(allergene => {
       const className = badgeMap[allergene] || "badge";
-      return `<span class="badge ${className}">${allergene}</span>`;
+      const tradotto = subSectionTranslations[allergene]?.[currentLang] || allergene;
+      return `<span class="badge ${className}">${tradotto}</span>`;
     }).join(" ");
   }
-
+  
   // Logica Traduzioni 
-
+  const langMap = {
+    it: "🇮🇹 IT",
+    en: "🏴 EN",
+    de: "🇩🇪 DE"
+  };
+  
   document.querySelector(".lang-switch").addEventListener("click", () => {
     currentLang = currentLang === "it" ? "en" : currentLang === "en" ? "de" : "it";
-    document.querySelector(".lang-switch").textContent = currentLang.toUpperCase();
+    document.querySelector(".lang-switch").textContent = langMap[currentLang];
   
-    updateStaticTexts(); // 🔁 traduci testi statici
-
-    // Ricarica la categoria corrente
+    updateStaticTexts();
+  
     const activeBtn = document.querySelector(".main-nav .active");
     if (activeBtn) {
-      const cat = activeBtn.dataset.cat;
-      renderSubNav(cat);
+      renderSubNav(activeBtn.dataset.cat);
     }
   });
+  
+  // inizializza anche al primo caricamento
+  document.querySelector(".lang-switch").textContent = langMap[currentLang];
+  
 
   function updateStaticTexts() {
     document.querySelectorAll("[data-menu]").forEach(el => {
@@ -275,9 +281,67 @@ document.addEventListener("DOMContentLoaded", () => {
       it: "Caricamento del menu...",
       en: "Loading the menu...",
       de: "Menü wird geladen..."
+    },
+    sottosezioni: {
+      it: {
+        "Antipasti": "Antipasti",
+        "Primi": "Primi",
+        "Secondi": "Secondi",
+        "Contorni": "Contorni",
+        "Senza sezione": "Senza sezione"
+      },
+      en: {
+        "Antipasti": "Appetizers",
+        "Primi": "First Courses",
+        "Secondi": "Main Courses",
+        "Contorni": "Sides",
+        "Senza sezione": "No section"
+      },
+      de: {
+        "Antipasti": "Vorspeisen",
+        "Primi": "Erste Gänge",
+        "Secondi": "Hauptgerichte",
+        "Contorni": "Beilagen",
+        "Senza sezione": "Keine Kategorie"
+      }
+    },
+    allergeni_label: {
+      it: "Allergeni",
+      en: "Allergens",
+      de: "Allergene"
     }
+    
   };
   
+  const subSectionTranslations = {
+    "Tutte": { it: "Tutte", en: "All", de: "Alle" },
+    "Antipasti": { it: "Antipasti", en: "Appetizers", de: "Vorspeisen" },
+    "Primi": { it: "Primi", en: "First courses", de: "Erste Gänge" },
+    "Secondi": { it: "Secondi", en: "Main courses", de: "Hauptgerichte" },
+    "Contorni": { it: "Contorni", en: "Side dishes", de: "Beilagen" },
+    "Dolci": { it: "Dolci", en: "Desserts", de: "Nachspeisen" },
+    "Classiche": { it: "Classiche", en: "Classics", de: "Klassisch" },
+    "Speciali": { it: "Speciali", en: "Specials", de: "Spezialitäten" },
+    "Rossi": { it: "Rossi", en: "Red", de: "Rot"},
+    "Bianchi": { it: "Bianchi", en: "White", de: "Weiß"},
+    "Alla spina": { it: "Alla spina", en: "Draft", de: "vom Fass"},
+    "Bottiglia": { it: "Bottiglia", en: "Bottle", de: "Flasche"},
+    "glutine": { it: "Glutine", en: "Gluten", de: "Gluten" },
+    "latte": { it: "Latte", en: "Milk", de: "Milch" },
+    "uova": { it: "Uova", en: "Eggs", de: "Eier" },
+    "pesce": { it: "Pesce", en: "Fish", de: "Fisch" },
+    "soia": { it: "Soia", en: "Soy", de: "Soja" },
+    "frutta a guscio": { it: "Frutta a guscio", en: "Nuts", de: "Schalenfrüchte" },
+    "sedano": { it: "Sedano", en: "Celery", de: "Sellerie" },
+    "solfiti": { it: "Solfiti", en: "Sulphites", de: "Sulfite" },
+    "senape": { it: "Senape", en: "Mustard", de: "Senf" },
+    "sesamo": { it: "Sesamo", en: "Sesame", de: "Sesam" },
+    "lupini": { it: "Lupini", en: "Lupins", de: "Lupinen" },
+    "molluschi": { it: "Molluschi", en: "Molluscs", de: "Weichtiere" },
+    "crostacei": { it: "Crostacei", en: "Crustaceans", de: "Krebstiere" },
+    "arachidi": { it: "Arachidi", en: "Peanuts", de: "Erdnüsse" },
+    "nessun_allergene": { it: "Nessun allergene", en: "No allergens", de: "Keine Allergene" }
+  };
   
     
 
